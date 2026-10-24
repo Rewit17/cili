@@ -1,0 +1,430 @@
+<title>Мої цілі життя</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600&display=swap">
+<style>
+/* Layout: one calm column — summary strip, area filter, list of goal cards; add-goal panel opens above the list */
+:root{
+  --bg:#f2f4f1; --surface:#ffffff; --fg:#17201c; --muted:#5d6a63; --line:#dce2dd;
+  --accent:#1f6f5c; --accent-soft:#dcece6; --done:#2f8a4a; --warn:#b5651d; --danger:#b23a3a;
+  --display:"Unbounded", "Golos Text", system-ui, sans-serif;
+  --body:"Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --c-health:#3d8a5f; --c-money:#b0821c; --c-career:#2f6fa8; --c-learn:#7a55a8; --c-people:#c0567a; --c-self:#4f7d82;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121815; --surface:#1a221e; --fg:#e7ede9; --muted:#9aa8a0; --line:#2c3731;
+  --accent:#5cc0a2; --accent-soft:#1d3a31; --done:#6cc68a; --warn:#e3a05a; --danger:#e07a7a;
+  --c-health:#6cc08e; --c-money:#e0b450; --c-career:#6aa8e0; --c-learn:#b394e0; --c-people:#e88aa9; --c-self:#86b6bb;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121815; --surface:#1a221e; --fg:#e7ede9; --muted:#9aa8a0; --line:#2c3731;
+  --accent:#5cc0a2; --accent-soft:#1d3a31; --done:#6cc68a; --warn:#e3a05a; --danger:#e07a7a;
+  --c-health:#6cc08e; --c-money:#e0b450; --c-career:#6aa8e0; --c-learn:#b394e0; --c-people:#e88aa9; --c-self:#86b6bb;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:28px 60px;display:flex;flex-direction:column;gap:22px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(24px,5vw,32px);margin:0;text-wrap:balance;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:4px 0 0}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{border:0;border-radius:10px;padding:10px 16px;font-weight:600;background:var(--accent);color:var(--surface)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--fg)}
+.btn.small{padding:6px 10px;font-size:13px;border-radius:8px}
+.btn.danger{background:var(--danger);color:var(--surface)}
+
+/* summary */
+.summary{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px}
+.ring{width:96px;height:96px}
+.ring text{font-family:var(--display);font-weight:700;fill:var(--fg)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.stat b{display:block;font-family:var(--display);font-size:22px;font-variant-numeric:tabular-nums}
+.stat span{color:var(--muted);font-size:13px}
+@media (max-width:460px){.summary{grid-template-columns:1fr;justify-items:center;text-align:center}}
+
+/* filters */
+.areas{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--c)}
+
+/* goals */
+.list{display:flex;flex-direction:column;gap:12px}
+.goal{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.goal.complete{border-color:var(--done)}
+.ghead{display:flex;gap:10px;justify-content:space-between;align-items:flex-start}
+.gtitle{font-weight:600;font-size:17px;margin:0;min-width:0;overflow-wrap:anywhere}
+.meta{display:flex;flex-wrap:wrap;gap:6px 12px;color:var(--muted);font-size:13px;margin-top:4px}
+.meta .area{color:var(--c);font-weight:600;display:inline-flex;align-items:center;gap:5px}
+.late{color:var(--warn);font-weight:600}
+.pct{font-family:var(--display);font-weight:700;font-size:20px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--c);border-radius:99px;transition:width .4s ease}
+.num{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.num .val{font-variant-numeric:tabular-nums;font-weight:600;margin-right:auto}
+.num input{width:110px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.steps label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.steps input{margin-top:4px;accent-color:var(--accent);width:16px;height:16px;flex:none}
+.steps .d{text-decoration:line-through;color:var(--muted)}
+.addstep{display:flex;gap:8px}
+.addstep input{flex:1;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.gfoot{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.linkbtn{background:none;border:0;color:var(--muted);font-size:13px;padding:4px 6px;text-decoration:underline}
+.confirm{display:flex;gap:8px;align-items:center;font-size:13px;flex-wrap:wrap}
+
+/* form */
+.panel{background:var(--surface);border:1px solid var(--accent);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.panel h2{font-family:var(--display);font-size:18px;margin:0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:520px){.grid{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field.full{grid-column:1/-1}
+.field label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.field input,.field select{padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);width:100%}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;border:1px solid var(--line);background:var(--bg);border-radius:9px;padding:9px;font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);font-weight:600}
+.hint{color:var(--muted);font-size:13px;margin:0}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:16px;padding:28px 20px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.empty p{margin:0;color:var(--muted);max-width:44ch}
+.note{font-size:13px;color:var(--warn);margin:0}
+/* daily posting checklist */
+.daily{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.dhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.daily h2{font-family:var(--display);font-size:17px;margin:0;text-wrap:balance}
+.dnav{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:14px;margin-top:4px;flex-wrap:wrap}
+.navb{border:1px solid var(--line);background:var(--bg);border-radius:8px;width:30px;height:30px;font-size:18px;line-height:1}
+.dpct{text-align:right;white-space:nowrap}
+.dpct b{display:block;font-family:var(--display);font-size:22px;font-variant-numeric:tabular-nums}
+.dpct span{color:var(--muted);font-size:12px}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.wd{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--muted)}
+.wd b{font-size:14px;color:var(--fg);font-variant-numeric:tabular-nums}
+.wd .m{width:18px;height:6px;border-radius:9px;background:var(--line);overflow:hidden}
+.wd .m i{display:block;height:100%;background:var(--accent)}
+.wd.full .m i{background:var(--done)}
+.wd[aria-current="date"]{border-color:var(--accent);background:var(--accent-soft)}
+.tgroup{display:flex;flex-direction:column;gap:6px}
+.tgroup h3{margin:6px 0 0;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.task{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.task.ok{border-color:var(--done)}
+.task .tn{flex:1;min-width:0;overflow-wrap:anywhere}
+.task .tn small{display:block;color:var(--muted);font-size:12px}
+.task.ok .tn{color:var(--muted)}
+.tick{width:34px;height:34px;flex:none;border-radius:10px;border:2px solid var(--line);background:var(--surface);font-size:18px;font-weight:700;color:var(--surface);display:grid;place-items:center}
+.task.ok .tick{background:var(--done);border-color:var(--done)}
+.ctr{display:flex;align-items:center;gap:6px;flex:none}
+.ctr button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:18px;font-weight:600}
+.ctr output{min-width:42px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.task.ok .ctr output{color:var(--done)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:10px;font-size:14px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Мої цілі життя</h1>
+      <p class="sub" id="today"></p>
+    </div>
+    <button class="btn" id="addBtn">+ Нова ціль</button>
+  </header>
+
+  <p class="note" id="storeNote" hidden></p>
+
+  <section class="daily" aria-label="Щоденні пости для ріелторства">
+    <div class="dhead">
+      <div style="min-width:0">
+        <h2>Пости на день · Ріелторство</h2>
+        <div class="dnav">
+          <button class="navb" id="dPrev" aria-label="Попередній день">‹</button>
+          <span id="dDate"></span>
+          <button class="navb" id="dNext" aria-label="Наступний день">›</button>
+          <button class="linkbtn" id="dToday" hidden>до сьогодні</button>
+        </div>
+      </div>
+      <div class="dpct"><b id="dPct">0/0</b><span>зроблено</span></div>
+    </div>
+    <div class="bar" style="--c:var(--accent)"><i id="dBar" style="width:0%"></i></div>
+    <div class="week" id="week" aria-label="Останні 7 днів"></div>
+    <div class="tasks" id="tasks"></div>
+  </section>
+
+  <section class="summary" aria-label="Загальний прогрес">
+    <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="42" fill="none" stroke="var(--line)" stroke-width="10"/>
+      <circle id="ringArc" cx="50" cy="50" r="42" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 264" transform="rotate(-90 50 50)"/>
+      <text id="ringTxt" x="50" y="57" text-anchor="middle" font-size="20">0%</text>
+    </svg>
+    <div class="stats">
+      <div class="stat"><b id="sTotal">0</b><span>цілей</span></div>
+      <div class="stat"><b id="sDone">0</b><span>досягнуто</span></div>
+      <div class="stat"><b id="sSoon">0</b><span>дедлайн ≤ 30 днів</span></div>
+    </div>
+  </section>
+
+  <form class="panel" id="form" hidden>
+    <h2 id="formTitle">Нова ціль</h2>
+    <div class="grid">
+      <div class="field full"><label for="fTitle">Ціль</label><input id="fTitle" required maxlength="120" placeholder="Напр.: Заробляти 1000 € на місяць на фрілансі"></div>
+      <div class="field"><label for="fArea">Сфера життя</label><select id="fArea"></select></div>
+      <div class="field"><label for="fDeadline">Дедлайн</label><input id="fDeadline" type="date"></div>
+      <div class="field full"><label>Як міряти прогрес</label>
+        <div class="seg" id="fKind">
+          <button type="button" data-k="steps" aria-pressed="true">Кроками (чекліст)</button>
+          <button type="button" data-k="num" aria-pressed="false">Числом</button>
+        </div>
+      </div>
+      <div class="field" data-for="num" hidden><label for="fTarget">Мета (число)</label><input id="fTarget" type="number" min="0" step="any" placeholder="1000"></div>
+      <div class="field" data-for="num" hidden><label for="fUnit">Одиниця</label><input id="fUnit" maxlength="20" placeholder="€, кг, книг, км…"></div>
+      <div class="field" data-for="num" hidden><label for="fStart">Зараз маю</label><input id="fStart" type="number" step="any" placeholder="0"></div>
+      <div class="field full" data-for="steps"><label for="fSteps">Кроки (кожен з нового рядка)</label>
+        <textarea id="fSteps" rows="4" style="font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--fg);width:100%;resize:vertical" placeholder="Пройти курс Meta Blueprint&#10;Зробити 2 кейси&#10;Знайти першого клієнта"></textarea>
+      </div>
+    </div>
+    <div class="gfoot">
+      <button type="button" class="btn ghost" id="cancelBtn">Скасувати</button>
+      <button type="submit" class="btn" id="saveBtn">Зберегти ціль</button>
+    </div>
+  </form>
+
+  <nav class="areas" id="areas" aria-label="Фільтр за сферою"></nav>
+  <section class="list" id="list" aria-live="polite"></section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const AREAS=[
+  {id:"health",name:"Здоров'я",c:"--c-health"},
+  {id:"money",name:"Фінанси",c:"--c-money"},
+  {id:"career",name:"Кар'єра",c:"--c-career"},
+  {id:"learn",name:"Навчання",c:"--c-learn"},
+  {id:"people",name:"Стосунки",c:"--c-people"},
+  {id:"self",name:"Особисте",c:"--c-self"}];
+const area=id=>AREAS.find(a=>a.id===id)||AREAS[5];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let goals=[], filter="all", editing=null, confirmDel=null, kind="steps";
+let store=null; // {save(goal), remove(id)}
+
+$("#today").textContent=new Date().toLocaleDateString("uk-UA",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+
+function progress(g){
+  if(g.kind==="num"){const t=+g.target||0;return t>0?Math.max(0,Math.min(1,(+g.current||0)/t)):0}
+  const s=g.steps||[];return s.length?s.filter(x=>x.done).length/s.length:0;
+}
+function daysLeft(d){if(!d)return null;const ms=new Date(d+"T23:59:59")-new Date();return Math.ceil(ms/864e5)}
+function fmtNum(n){return (+n||0).toLocaleString("uk-UA",{maximumFractionDigits:2})}
+function dayWord(n){n=Math.abs(n);const a=n%10,b=n%100;if(a===1&&b!==11)return"день";if(a>=2&&a<=4&&(b<12||b>14))return"дні";return"днів"}
+
+function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,1800)}
+
+function renderAreas(){
+  const counts={};goals.forEach(g=>counts[g.area]=(counts[g.area]||0)+1);
+  $("#areas").innerHTML=`<button class="chip" data-f="all" aria-pressed="${filter==="all"}">Усі · ${goals.length}</button>`+
+    AREAS.filter(a=>counts[a.id]).map(a=>`<button class="chip" data-f="${a.id}" aria-pressed="${filter===a.id}" style="--c:var(${a.c})"><span class="dot"></span>${a.name} · ${counts[a.id]}</button>`).join("");
+}
+function renderSummary(){
+  const n=goals.length, avg=n?goals.reduce((s,g)=>s+progress(g),0)/n:0;
+  const pct=Math.round(avg*100);
+  $("#ringArc").setAttribute("stroke-dasharray",`${(avg*264).toFixed(1)} 264`);
+  $("#ringTxt").textContent=pct+"%";
+  $("#sTotal").textContent=n;
+  $("#sDone").textContent=goals.filter(g=>progress(g)>=1).length;
+  $("#sSoon").textContent=goals.filter(g=>{const d=daysLeft(g.deadline);return d!==null&&d>=0&&d<=30&&progress(g)<1}).length;
+}
+function goalHTML(g){
+  const a=area(g.area), p=progress(g), pct=Math.round(p*100), d=daysLeft(g.deadline);
+  let dl="";
+  if(g.deadline){const date=new Date(g.deadline+"T12:00").toLocaleDateString("uk-UA",{day:"numeric",month:"short",year:"numeric"});
+    dl=p>=1?`до ${date}`:d<0?`<span class="late">прострочено на ${-d} ${dayWord(d)}</span>`:`до ${date} · залишилось ${d} ${dayWord(d)}`;}
+  let body;
+  if(g.kind==="num"){
+    body=`<div class="num"><span class="val">${fmtNum(g.current)} / ${fmtNum(g.target)} ${esc(g.unit)}</span>
+      <input type="number" step="any" id="v-${g.id}" value="${+g.current||0}" aria-label="Поточне значення">
+      <button class="btn small" data-act="setnum" data-id="${g.id}">Оновити</button></div>`;
+  }else{
+    body=`<ul class="steps">${(g.steps||[]).map((s,i)=>`<li><label><input type="checkbox" data-act="step" data-id="${g.id}" data-i="${i}" ${s.done?"checked":""}><span class="${s.done?"d":""}">${esc(s.t)}</span></label></li>`).join("")}</ul>
+      <div class="addstep"><input id="s-${g.id}" placeholder="Додати крок…" maxlength="140" aria-label="Новий крок"><button class="btn small ghost" data-act="addstep" data-id="${g.id}">Додати</button></div>`;
+  }
+  const foot=confirmDel===g.id
+    ?`<div class="confirm">Видалити ціль назавжди? <button class="btn small danger" data-act="del" data-id="${g.id}">Так, видалити</button><button class="btn small ghost" data-act="nodel">Ні</button></div>`
+    :`<button class="linkbtn" data-act="edit" data-id="${g.id}">Редагувати</button><button class="linkbtn" data-act="askdel" data-id="${g.id}">Видалити</button>`;
+  return `<article class="goal ${p>=1?"complete":""}" style="--c:var(${a.c})">
+    <div class="ghead"><div style="min-width:0"><h3 class="gtitle">${p>=1?"✓ ":""}${esc(g.title)}</h3>
+      <div class="meta"><span class="area"><span class="dot"></span>${a.name}</span>${dl?`<span>${dl}</span>`:""}</div></div>
+      <div class="pct">${pct}%</div></div>
+    <div class="bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div>
+    ${body}<div class="gfoot">${foot}</div></article>`;
+}
+function renderList(){
+  if(!goals.length){
+    $("#list").innerHTML=`<div class="empty"><p><b>Тут з'являться твої цілі.</b> Натисни «+ Нова ціль», дай їй назву, обери сферу життя і спосіб вимірювання: кроками або числом.</p>
+      <button class="btn ghost" data-act="examples">Додати 3 приклади цілей</button></div>`;return;}
+  const shown=goals.filter(g=>filter==="all"||g.area===filter)
+    .sort((a,b)=>(progress(a)>=1)-(progress(b)>=1)||(a.deadline||"9999").localeCompare(b.deadline||"9999"));
+  $("#list").innerHTML=shown.map(goalHTML).join("");
+}
+function render(){renderDaily();renderSummary();renderAreas();renderList()}
+
+/* ---- daily posting checklist ---- */
+const TASKS=[
+  {g:"TikTok",id:"tt_post",name:"Пост у TikTok",need:1,max:1},
+  {g:"TikTok",id:"tt_story",name:"Сторіс у TikTok",need:1,max:1},
+  {g:"Telegram",id:"tg_story",name:"Сторіс у Telegram",need:1,max:1},
+  {g:"Telegram",id:"tg_mine",name:"Пост у мою групу",hint:"1–2 пости",need:1,max:2},
+  {g:"Telegram",id:"tg_durres",name:"Пост у групу «Українці в Дурресі»",hint:"1–2 пости",need:1,max:2},
+  {g:"Facebook-групи",id:"fb_1",name:"Перший захід",hint:"5 постів у групи",need:5,max:5},
+  {g:"Facebook-групи",id:"fb_2",name:"Другий захід",hint:"5 постів у групи",need:5,max:5}];
+const NEED=TASKS.reduce((s,t)=>s+t.need,0);
+let days={}; // "YYYY-MM-DD" -> {counts}
+const keyOf=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const todayKey=()=>keyOf(new Date());
+let dayKey=todayKey();
+const shift=(k,n)=>{const d=new Date(k+"T12:00");d.setDate(d.getDate()+n);return keyOf(d)};
+const countsOf=k=>days[k]?.counts||{};
+const doneOf=k=>{const c=countsOf(k);return TASKS.reduce((s,t)=>s+Math.min(c[t.id]||0,t.need),0)};
+function renderDaily(){
+  const c=countsOf(dayKey), done=doneOf(dayKey), isToday=dayKey===todayKey();
+  const d=new Date(dayKey+"T12:00");
+  $("#dDate").textContent=(isToday?"Сьогодні, ":dayKey===shift(todayKey(),-1)?"Вчора, ":"")+d.toLocaleDateString("uk-UA",{weekday:isToday?undefined:"short",day:"numeric",month:"long"});
+  $("#dToday").hidden=isToday; $("#dNext").disabled=isToday; $("#dNext").style.opacity=isToday?.35:1;
+  $("#dPct").textContent=`${done}/${NEED}`;
+  $("#dBar").style.width=Math.round(done/NEED*100)+"%";
+  let w="";for(let i=6;i>=0;i--){const k=shift(todayKey(),-i),dd=new Date(k+"T12:00"),p=doneOf(k)/NEED;
+    w+=`<button class="wd ${p>=1?"full":""}" data-day="${k}" ${k===dayKey?'aria-current="date"':""} aria-label="${dd.toLocaleDateString("uk-UA",{weekday:"long",day:"numeric",month:"long"})}: ${Math.round(p*100)}%">
+      ${dd.toLocaleDateString("uk-UA",{weekday:"short"})}<b>${dd.getDate()}</b><span class="m"><i style="width:${Math.round(p*100)}%"></i></span></button>`}
+  $("#week").innerHTML=w;
+  const groups=[...new Set(TASKS.map(t=>t.g))];
+  $("#tasks").innerHTML=groups.map(g=>`<div class="tgroup"><h3>${g}</h3>${TASKS.filter(t=>t.g===g).map(t=>{
+    const v=c[t.id]||0, ok=v>=t.need, hint=t.hint?`<small>${t.hint}</small>`:"";
+    if(t.max===1)return `<button class="task ${ok?"ok":""}" data-task="${t.id}" data-op="toggle" aria-pressed="${ok}" style="text-align:left;font:inherit;color:inherit;width:100%">
+        <span class="tick" aria-hidden="true">${ok?"✓":""}</span><span class="tn">${t.name}${hint}</span></button>`;
+    return `<div class="task ${ok?"ok":""}"><span class="tn">${t.name}${hint}</span>
+      <span class="ctr"><button data-task="${t.id}" data-op="-1" aria-label="Мінус один: ${t.name}">−</button>
+      <output>${v}/${t.need}</output>
+      <button data-task="${t.id}" data-op="1" aria-label="Плюс один: ${t.name}">+</button></span></div>`}).join("")}</div>`).join("");
+}
+let dayQueue=Promise.resolve();
+function setCount(id,val){
+  const t=TASKS.find(x=>x.id===id);val=Math.max(0,Math.min(t.max,val));
+  const before=doneOf(dayKey);
+  const doc={id:"day-"+dayKey,type:"day",date:dayKey,counts:{...countsOf(dayKey),[id]:val}};
+  days[dayKey]=doc;renderDaily();
+  if(before<NEED&&doneOf(dayKey)>=NEED)toast("Усі пости на день виставлено! 🎉");
+  dayQueue=dayQueue.then(()=>store.saveDay(doc)).catch(showStoreErr);
+}
+$("#tasks").addEventListener("click",e=>{const b=e.target.closest("[data-task]");if(!b)return;
+  const v=countsOf(dayKey)[b.dataset.task]||0;
+  setCount(b.dataset.task,b.dataset.op==="toggle"?(v?0:1):v+ +b.dataset.op)});
+$("#week").addEventListener("click",e=>{const b=e.target.closest("[data-day]");if(b){dayKey=b.dataset.day;renderDaily()}});
+$("#dPrev").onclick=()=>{dayKey=shift(dayKey,-1);renderDaily()};
+$("#dNext").onclick=()=>{if(dayKey<todayKey()){dayKey=shift(dayKey,1);renderDaily()}};
+$("#dToday").onclick=()=>{dayKey=todayKey();renderDaily()};
+// roll over to the new day if the page stays open past midnight
+let lastToday=todayKey();
+function rollDay(){const t=todayKey();if(t!==lastToday){if(dayKey===lastToday)dayKey=t;lastToday=t;renderDaily()}}
+setInterval(rollDay,60000);
+window.__appResume=()=>{rollDay();$("#today").textContent=new Date().toLocaleDateString("uk-UA",{weekday:"long",day:"numeric",month:"long",year:"numeric"})};
+
+/* form */
+$("#fArea").innerHTML=AREAS.map(a=>`<option value="${a.id}">${a.name}</option>`).join("");
+function setKind(k){kind=k;document.querySelectorAll("#fKind button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===k));
+  document.querySelectorAll("[data-for]").forEach(el=>el.hidden=el.dataset.for!==k)}
+$("#fKind").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setKind(b.dataset.k)});
+function openForm(g){
+  editing=g?g.id:null;$("#form").hidden=false;$("#formTitle").textContent=g?"Редагувати ціль":"Нова ціль";
+  $("#fTitle").value=g?.title||"";$("#fArea").value=g?.area||(filter!=="all"?filter:"career");
+  $("#fDeadline").value=g?.deadline||"";setKind(g?.kind||"steps");
+  $("#fTarget").value=g?.target??"";$("#fUnit").value=g?.unit||"";$("#fStart").value=g?.current??"";
+  $("#fSteps").value=(g?.steps||[]).map(s=>s.t).join("\n");
+  $("#fTitle").focus();window.scrollTo({top:0,behavior:"smooth"});
+}
+$("#addBtn").onclick=()=>openForm(null);
+$("#cancelBtn").onclick=()=>{$("#form").hidden=true;editing=null};
+$("#form").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const title=$("#fTitle").value.trim();if(!title)return;
+  const old=goals.find(g=>g.id===editing);
+  const g={id:old?.id||("g"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),
+    title,area:$("#fArea").value,deadline:$("#fDeadline").value||"",kind,created:old?.created||Date.now()};
+  if(kind==="num"){g.target=+$("#fTarget").value||0;g.unit=$("#fUnit").value.trim();g.current=+$("#fStart").value||0;g.steps=[]}
+  else{const prev=old?.steps||[];g.steps=$("#fSteps").value.split("\n").map(s=>s.trim()).filter(Boolean)
+    .map(t=>({t,done:!!prev.find(p=>p.t===t&&p.done)}));g.target=0;g.unit="";g.current=0}
+  $("#form").hidden=true;editing=null;await save(g);toast(old?"Ціль оновлено":"Ціль додано");
+});
+
+/* actions */
+document.addEventListener("click",async e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;
+  const act=b.dataset.act;
+  if(b.closest("#areas")||b.dataset.f)return;
+  const g=goals.find(x=>x.id===b.dataset.id);
+  if(act==="step"){return}
+  if(act==="setnum"&&g){const v=+$("#v-"+g.id).value;await save({...g,current:isFinite(v)?v:0});toast("Прогрес оновлено")}
+  if(act==="addstep"&&g){const inp=$("#s-"+g.id);const t=inp.value.trim();if(!t)return;await save({...g,steps:[...g.steps,{t,done:false}]})}
+  if(act==="edit"&&g)openForm(g);
+  if(act==="askdel"){confirmDel=b.dataset.id;renderList()}
+  if(act==="nodel"){confirmDel=null;renderList()}
+  if(act==="del"&&g){confirmDel=null;await remove(g.id);toast("Ціль видалено")}
+  if(act==="examples")await addExamples();
+});
+document.addEventListener("change",async e=>{
+  const c=e.target;if(c.dataset.act!=="step")return;
+  const g=goals.find(x=>x.id===c.dataset.id);if(!g)return;
+  const steps=g.steps.map((s,i)=>i===+c.dataset.i?{...s,done:c.checked}:s);
+  const was=progress(g)>=1;const ng={...g,steps};await save(ng);
+  if(!was&&progress(ng)>=1)toast("Ціль досягнуто! 🎉");
+});
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id?.startsWith("s-")){e.preventDefault();e.target.nextElementSibling.click()}});
+$("#areas").addEventListener("click",e=>{const b=e.target.closest("[data-f]");if(b){filter=b.dataset.f;render()}});
+
+async function addExamples(){
+  const y=new Date().getFullYear(), pad=m=>String(m).padStart(2,"0");
+  const inM=m=>{const d=new Date();d.setMonth(d.getMonth()+m);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
+  const ex=[
+    {title:"Вийти на 1000 € на місяць на фрілансі",area:"money",kind:"num",target:1000,unit:"€/міс",current:0,deadline:inM(6),steps:[]},
+    {title:"Пройти навчання з таргетованої реклами",area:"learn",kind:"steps",deadline:inM(1),target:0,unit:"",current:0,
+      steps:["Базовий курс HubSpot з digital-маркетингу","Трек для новачків у Meta Blueprint","Тестова кампанія на 5–10 €"].map(t=>({t,done:false}))},
+    {title:"Зробити 3 кейси для портфоліо",area:"career",kind:"num",target:3,unit:"кейси",current:0,deadline:inM(2),steps:[]}];
+  for(const [i,g] of ex.entries())await save({...g,id:"g"+Date.now().toString(36)+i,created:Date.now()+i});
+  toast("Приклади додано, їх можна змінити або видалити");
+}
+
+/* storage: private per-person db, local fallback */
+function upsertLocal(g){const i=goals.findIndex(x=>x.id===g.id);if(i>=0)goals[i]=g;else goals.push(g)}
+async function save(g){upsertLocal(g);render();try{await store.save(g)}catch(err){showStoreErr(err)}}
+async function remove(id){goals=goals.filter(g=>g.id!==id);render();try{await store.remove(id)}catch(err){showStoreErr(err)}}
+function showStoreErr(){const n=$("#storeNote");n.hidden=false;n.textContent="Не вдалося зберегти зміну. Перевір інтернет і онови сторінку."}
+
+const LS="life-goals-v1";
+const LSD="life-goals-days-v1";
+const localStore={save(){try{localStorage.setItem(LS,JSON.stringify(goals))}catch{}},remove(){try{localStorage.setItem(LS,JSON.stringify(goals))}catch{}},
+  saveDay(){try{localStorage.setItem(LSD,JSON.stringify(days))}catch{}}};
+function useLocal(msg){
+  store=localStore;try{goals=JSON.parse(localStorage.getItem(LS)||"[]")}catch{goals=[]}
+  try{days=JSON.parse(localStorage.getItem(LSD)||"{}")}catch{days={}}
+  if(msg){const n=$("#storeNote");n.hidden=false;n.textContent=msg}render();
+}
+if(window.__APP__){useLocal()}else{
+render();
+(async()=>{
+  try{
+    const db=await window.claude?.use?.("db"), user=await window.claude?.use?.("user");
+    if(!db||!user){useLocal("Зараз цілі зберігаються лише в цьому браузері. Увійди в Claude, щоб вони були доступні на всіх твоїх пристроях.");return}
+    const uid=await user.id();
+    const col=db.collection("data/users/"+uid);
+    store={save:g=>col.doc(g.id).set(g),remove:id=>col.doc(id).delete(),saveDay:d=>col.doc(d.id).set(d)};
+    col.onSnapshot(snap=>{
+      const all=snap.docs.filter(d=>d.exists).map(d=>({...d.data(),id:d.id}));
+      goals=all.filter(x=>!x.id.startsWith("day-"));
+      days={};all.filter(x=>x.id.startsWith("day-")).forEach(x=>days[x.date]=x);
+      render()},
+      ()=>useLocal("Не вдалося підключити збереження. Поки що цілі зберігаються лише в цьому браузері."));
+  }catch{useLocal("Цілі зберігаються лише в цьому браузері.")}
+})();
+}
+
+</script>
